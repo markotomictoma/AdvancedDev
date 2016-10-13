@@ -1,0 +1,58 @@
+<apex:page standardcontroller="Showing__c" extensions="ShowingWizardController">
+    <apex:form >
+        <apex:pagemessages />
+        <apex:sectionheader title="{!$Label.Showing_Edit}" subtitle="{!IF(Showing__c.Id == null, $Label.New_Showing, Showing__c.Name)}" />
+        <apex:pageblock title="{!$Label.Showing_Information}" mode="edit">
+            <apex:pageblockbuttons >
+                <apex:commandbutton action="{!Save}" value="{!$Label.Save}" />
+                <apex:commandbutton action="{!Cancel}" value="{!$Label.Cancel}" />
+            </apex:pageblockbuttons>
+            <apex:pageblocksection title="{!$Label.Showing_Details}" columns="2">
+                <apex:inputfield value="{!Showing__c.Date__c}" />
+                <apex:inputfield value="{!Showing__c.Feature__c}" />
+                <apex:inputfield value="{!Showing__c.Start_Time__c}" required="true" />
+                <apex:outputfield value="{!Showing__c.Feature__r.Genre__c}" rendered="{!Showing__c.Id != null}" />
+                <apex:inputfield value="{!Showing__c.Screen_Number__c}" />
+                <apex:outputfield value="{!Showing__c.Feature__r.Release_Date__c}" rendered="{!Showing__c.Id != null}" />
+                <apex:inputfield value="{!Showing__c.Tickets_Sold__c}" />
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!$Label.Chart}" id="pbsGenresChart">
+                <apex:chart height="350" width="450" data="{!pieData}" rendered="{!isAtLeastOneFeatureSelected}">
+                    <apex:pieseries datafield="cnt" labelfield="genre" donut="50" />
+                </apex:chart>
+                <apex:outputtext value="{!$Label.No_Trailers}" rendered="{!!isAtLeastOneFeatureSelected}" />
+            </apex:pageblocksection>
+            <apex:pageblocksection title="{!$Label.Trailers}" id="pbsFeatures" columns="1">
+                <apex:actionregion >
+                    <apex:outputpanel >
+                        <apex:selectlist value="{!selectedGenre}" size="1" required="true">
+                            <apex:selectoptions value="{!genres}" />
+                            <apex:actionsupport event="onchange" action="{!FilterFeatures}" rerender="pbsFeatures,pbsGenresChart" />
+                        </apex:selectlist>
+                    </apex:outputpanel>
+                    <apex:outputpanel >
+                        <apex:pageblocktable value="{!features}" var="f">
+                            <apex:column >
+                                <apex:inputcheckbox value="{!featureId2Selected[f.Id]}" />
+                            </apex:column>
+                            <apex:column headervalue="{!$ObjectType.Feature__c.fields.Name.label}">
+                                <apex:outputlink value="/{!f.Id}" target="_blank">{!f.Name}</apex:outputlink>
+                            </apex:column>
+                            <apex:column value="{!f.Release_Date__c}" />
+                            <apex:column value="{!f.Genre__c}" />
+                        </apex:pageblocktable>
+                    </apex:outputpanel>
+                    <apex:outputpanel layout="inline">
+                        <apex:commandbutton action="{!ShowFirst}" value="|< First" disabled="{!firstRendered = true || totalPages == 1}" rerender="pbsFeatures, pbsGenresChart" immediate="true" />
+                        <apex:commandbutton action="{!ShowPrevious}" value="Previous" disabled="{!firstRendered = true || totalPages == 1}" rerender="pbsFeatures, pbsGenresChart" immediate="true" />
+                        <apex:outputtext value="Page {!currentPage} " />
+                        <apex:outputtext value="of" />
+                        <apex:outputtext value=" {!totalPages}" />
+                        <apex:commandbutton action="{!ShowNext}" value="Next" disabled="{!lastRendered = true || totalPages == 1}" rerender="pbsFeatures, pbsGenresChart" immediate="true" />
+                        <apex:commandbutton action="{!ShowLast}" value="Last >|" disabled="{!lastRendered = true || totalPages == 1}" rerender="pbsFeatures, pbsGenresChart" immediate="true" />
+                    </apex:outputpanel>
+                </apex:actionregion>
+            </apex:pageblocksection>
+        </apex:pageblock>
+    </apex:form>
+</apex:page>
